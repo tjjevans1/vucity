@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
 
-import { BrowserRouter, Route } from 'react-router-dom';
+import { BrowserRouter, Route, Redirect } from 'react-router-dom';
 
 class Field extends Component {
   constructor(props) {
@@ -41,7 +41,7 @@ class Welcome extends Component {
     let email = 'yo';
 
     return (
-      <div>Welcome back {email}</div>
+      <div className="form">Welcome back!</div>
     );
   }
 }
@@ -50,15 +50,17 @@ class Login extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      email: {
-        'value': '',
-        'errors': [],
+      fields: {
+        email: {
+          'value': '',
+          'errors': [],
+        },
+        password: {
+          'value': '',
+          'errors': [],
+        },
       },
-      password: {
-        'value': '',
-        'errors': [],
-      },
-
+      authenticated: false
     };
 
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -66,22 +68,22 @@ class Login extends Component {
   }
 
   handleInput(event, field) {
-    let newstate = this.state;
+    let newstate = this.state.fields;
 
     newstate[field].value = event.target.value;
     newstate[field].errors = [];
 
-    this.setState(newstate);
+    this.setState({fields: newstate});
   }
 
   handleSubmit(event) {
     let valid = true;
-    const newstate = this.state;
+    const newstate = this.state.fields;
 
-    Object.keys(this.state).forEach((key) => {
+    Object.keys(this.state.fields).forEach((key) => {
       newstate[key].errors = [];
 
-      if (this.state[key].value.length < 1) {
+      if (this.state.fields[key].value.length < 1) {
         valid = false;
 
         newstate[key].errors.push('Please enter your ' + key);
@@ -90,7 +92,7 @@ class Login extends Component {
       } 
 
       if (key === 'email') {
-        if (this.state[key].value.indexOf('@') < 0) {
+        if (this.state.fields[key].value.indexOf('@') < 0) {
           valid = false;
 
           newstate[key].errors.push('Email must contain an \'@\' character');
@@ -98,7 +100,7 @@ class Login extends Component {
       }
 
       if (key === 'password') {
-        if (this.state[key].value.length < 8) {
+        if (this.state.fields[key].value.length < 8) {
           valid = false;
 
           newstate[key].errors.push('Password must be over 8 letters long');
@@ -107,30 +109,35 @@ class Login extends Component {
     });
 
     if (valid) {
-      console.log('submit');
+      this.setState({authenticated: true});
     } else {
-      this.setState(newstate);
+      this.setState({fields: newstate});
     }
 
     event.preventDefault();
   }
 
   render() {
+    if (this.state.authenticated) {
+      return (
+        <Redirect to="/welcome" />
+      );
+    }
     return (
       <form className="form" onSubmit={this.handleSubmit} noValidate>
         <Field 
           label="Email" 
           type="email" 
           field="email" 
-          value={this.state.email.value} 
-          errors={this.state.email.errors}
+          value={this.state.fields.email.value} 
+          errors={this.state.fields.email.errors}
           handleInput={this.handleInput} />
         <Field 
           label="Password" 
           type="password" 
           field="password"
-          value={this.state.password.value} 
-          errors={this.state.password.errors}
+          value={this.state.fields.password.value} 
+          errors={this.state.fields.password.errors}
           handleInput={this.handleInput} />
         <label className="form-field">
           <input type="submit" />
